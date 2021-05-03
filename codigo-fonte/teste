@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include <tof.h>
+//#include <tof.h>
 
 #define TRIG 5   //GPIO 24
 #define ECHO 6   //GPIO 25
@@ -46,6 +46,7 @@ void* ultr1(void* arg) {
 
         //Conversão em cm
         dist1 = (travelTime/58.0); //
+	delay(500);
 
         //printf("Distance: %.5lf us\n", travelTime);
         printf("Dist1: %.3lf cm\n", dist1);
@@ -58,14 +59,15 @@ void* ultr2(void* arg) {
         delay(0.01);      //delayMicroseconds(20);usleep (20)
         digitalWrite(TRIG2, LOW);
 
-        while(digitalRead(ECHO2) == 0); 
+        while(digitalRead(ECHO2) == 0); //Espera echo ficar em nível alto
         double startTime = micros(); 	//marcação de tempo
         while(digitalRead(ECHO2) == 1); //espera echo acabar
-        double endTime = micros(); 
+        double endTime = micros(); //tempo do fim do pulso - tempo inicial
         double travelTime = endTime - startTime;
 
         //Conversão em cm
         dist2 = (travelTime/58.0); //
+	delay(500);
 
         //printf("Distance: %.5lf us\n", travelTime);
         printf("Dist2: %.3lf cm\n", dist2);
@@ -91,7 +93,7 @@ void picture(){
 	close(fp);
 	if (det[21] == '0') { //posição da string que diz se a camera está conectada
 		printf("A camera não está conectada\n Falha em abrir stream\n");
-		system("curl -s -X POST https://api.telegram.org/bot106/sendMessage -d chat_id=705-d text='A stream falhou em ser executada'");
+		//system("curl -s -X POST https://api.telegram.org/bot106/sendMessage -d chat_id=705-d text='A stream falhou em ser executada'");
 		system("sudo rm camanalyser.txt"); //remove arquivo de análise do status da câmera
 		exit(-1);
 
@@ -103,13 +105,9 @@ void picture(){
 } //fotos
 
 
-void ctrl_c(int sig)
+void ctrl_c(int sig) // para o processo
 {
-     system("sudo pkill uv4l"); // remove file video%d
-     //system("sudo rm stream.txt"); // remove file video%d
-     printf("Cancelando os processos\n");
-     //sudo pkill uv4l
-     //system("rm stream.txt");
+     printf("parando a leitura da distancia\n");
      exit(-1);
 }
 
@@ -118,7 +116,7 @@ int main(int argc, char *argv[])
 
 	setup();  	//definindo as portas wiringpi
     	pthread_t thr_1, thr_2;
-    	signal(SIGINT, ctrl_c);
+    	signal(SIGINT, ctrl_c); // para parar o comando
     	//signal(SIGUSR1, mensagem); para mandar futuramente sinal para segundo processo que vai mandar a foto por email ou telegram
 
 	while(1)
@@ -126,8 +124,11 @@ int main(int argc, char *argv[])
 		usleep(50000);
 		pthread_create(&thr_1, NULL, &ultr1, NULL);
 		pthread_create(&thr_2, NULL, &ultr2, NULL);
+		pthread_join(thr_1, NULL);
+		pthread_join(thr_2, NULL);
+		
 			
-		if((dist1 > 1 && dist1 < 5) | (dist2 > 1 && dist2 < 5))
+		if((dist1 > 1 && dist1 < 20) | (dist2 > 1 && dist2 < 20)) // captura a fot do obejto a uma distancia entre 1 a 20 cm
 		{
 			usleep(50000);
 			picture();  //tira a foto
@@ -136,3 +137,4 @@ int main(int argc, char *argv[])
 	}
     return 0;
 }
+

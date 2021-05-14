@@ -44,10 +44,10 @@ void* ultr1(void* arg) {
         double travelTime = endTime - startTime;
 
         //Conversão em cm
-        distancia1 = (travelTime/58.0); //
+        distancia1 = (travelTime/58.0); 
 	delay(1000);
 
-        //printf("Distance: %.5lf us\n", travelTime);
+  
         printf("Distancia1: %.3lf cm\n", distancia1);
         return NULL;
 } //thread sensor ultrassom 1
@@ -65,10 +65,8 @@ void* ultr2(void* arg) {
         double travelTime = endTime - startTime;
 
         //Conversão em cm
-        distancia2 = (travelTime/58.0); //
+        distancia2 = (travelTime/58.0); 
 	delay(1000);
-
-        //printf("Distance: %.5lf us\n", travelTime);
         printf("Distancia2: %.3lf cm\n", distancia2);
         return NULL;
 } //thread sensor ultrassom 2
@@ -79,7 +77,6 @@ void picture(){
 	char det[35];
 	//char buffer_ent[100];
 	//char buffer_sai[100];
-
 
 	system("vcgencmd get_camera >> camanalyser.txt");  
 
@@ -117,7 +114,6 @@ int main(int argc, char *argv[])
 	setup();  	//definindo as portas wiringpi
     	pthread_t thr_1, thr_2;
     	signal(SIGINT, ctrl_c);
-    	//signal(SIGUSR1, mensagem); para mandar futuramente sinal para segundo processo que vai mandar a foto por email ou telegram
 
 	while(1)
 	{

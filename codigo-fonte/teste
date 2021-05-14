@@ -34,7 +34,7 @@ void setup() {
 void* ultr1(void* arg) {
         //Manda pulso trig
         digitalWrite(TRIG, HIGH);
-        delay(1);      //delayMicroseconds(20);usleep (20) 1?
+        delay(0.01);      //delayMicroseconds(20);usleep (20) 1?
         digitalWrite(TRIG, LOW);
 
         while(digitalRead(ECHO) == 0); //Espera echo ficar em nível alto
@@ -55,7 +55,7 @@ void* ultr1(void* arg) {
 void* ultr2(void* arg) {
         //Manda pulso trig
         digitalWrite(TRIG2, HIGH);
-        delay(1);      //delayMicroseconds(20);usleep (20) 1?
+        delay(0.01);      //delayMicroseconds(20);usleep (20) 1?
         digitalWrite(TRIG2, LOW);
 
         while(digitalRead(ECHO2) == 0); //Espera echo ficar em nível alto

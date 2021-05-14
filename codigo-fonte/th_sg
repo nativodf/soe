@@ -1,0 +1,4 @@
+#!/bin/bash
+tgpath=/home/pi/tg
+cd ${tgpath}
+(sleep 3; echo "send_photo $1 $2"; echo "safe_quit") | ${tgpath}/bin/telegram-cli -k tg-server.pub -W

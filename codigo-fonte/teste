@@ -11,7 +11,6 @@
 #include <errno.h>
 #include <pthread.h>
 
-//#include <tof.h>
 
 #define TRIG 5   //GPIO 24
 #define ECHO 6   //GPIO 25
@@ -20,8 +19,8 @@
 
 
 int stexec = 0;
-double dist1 = 0.0;
-double dist2 =0.0;
+double distancia1 = 0.0;
+double distancia2 =0.0;
 
 void setup() {
        wiringPiSetup();
@@ -45,11 +44,11 @@ void* ultr1(void* arg) {
         double travelTime = endTime - startTime;
 
         //Conversão em cm
-        dist1 = (travelTime/58.0); //
-	delay(500);
+        distancia1 = (travelTime/58.0); //
+	delay(1000);
 
         //printf("Distance: %.5lf us\n", travelTime);
-        printf("Dist1: %.3lf cm\n", dist1);
+        printf("Distancia1: %.3lf cm\n", distancia1);
         return NULL;
 } //thread sensor ultrassom 1
 
@@ -66,11 +65,11 @@ void* ultr2(void* arg) {
         double travelTime = endTime - startTime;
 
         //Conversão em cm
-        dist2 = (travelTime/58.0); //
-	delay(500);
+        distancia2 = (travelTime/58.0); //
+	delay(1000);
 
         //printf("Distance: %.5lf us\n", travelTime);
-        printf("Dist2: %.3lf cm\n", dist2);
+        printf("Distancia2: %.3lf cm\n", distancia2);
         return NULL;
 } //thread sensor ultrassom 2
 
@@ -78,8 +77,8 @@ void picture(){
 	int fp, i=0;
 	char ch;
 	char det[35];
-	char buffer_ent[100];
-	char buffer_sai[100];
+	//char buffer_ent[100];
+	//char buffer_sai[100];
 
 
 	system("vcgencmd get_camera >> camanalyser.txt");  
@@ -92,8 +91,8 @@ void picture(){
 	}
 	close(fp);
 	if (det[21] == '0') { //posição da string que diz se a camera está conectada
-		printf("A camera não está conectada\n Falha em abrir stream\n");
-		//system("curl -s -X POST https://api.telegram.org/bot106/sendMessage -d chat_id=705-d text='A stream falhou em ser executada'");
+		printf("A camera não está conectada\n Falha em abrir\n");
+		system("curl -s -X POST https://api.telegram.org/bot106/sendMessage -d chat_id=705-d text='A stream falhou em ser executada'");
 		system("sudo rm camanalyser.txt"); //remove arquivo de análise do status da câmera
 		exit(-1);
 
@@ -105,18 +104,19 @@ void picture(){
 } //fotos
 
 
-void ctrl_c(int sig) // para o processo
+void ctrl_c(int sig)
 {
-     printf("parando a leitura da distancia\n");
-     exit(-1);
+     	system("sudo rm -r /home/pi/Desktop/projeto/cam.jpg");
+     	printf("Cancelando os processos\n");
+ 	exit(-1);
 }
 
 int main(int argc, char *argv[])
 {
-
+	
 	setup();  	//definindo as portas wiringpi
     	pthread_t thr_1, thr_2;
-    	signal(SIGINT, ctrl_c); // para parar o comando
+    	signal(SIGINT, ctrl_c);
     	//signal(SIGUSR1, mensagem); para mandar futuramente sinal para segundo processo que vai mandar a foto por email ou telegram
 
 	while(1)
@@ -127,14 +127,25 @@ int main(int argc, char *argv[])
 		pthread_join(thr_1, NULL);
 		pthread_join(thr_2, NULL);
 		
-			
-		if((dist1 > 1 && dist1 < 20) | (dist2 > 1 && dist2 < 20)) // captura a fot do obejto a uma distancia entre 1 a 20 cm
+		if((distancia1 > 1 && distancia1 < 30 ) | (distancia2 > 1 && distancia2 < 30))
 		{
 			usleep(50000);
 			picture();  //tira a foto
-
+			stexec = 1;
 		}
+		
+		if (stexec == 1)
+		{
+				
+			
+			//system("python3 telbot.py");
+			//usleep(300000);
+			system("./tg.sh Pi_Monitor /home/pi/Desktop/projeto/cam.jpg"); //manda por telegram cli
+                        usleep(50000000); //tempo de upload da foto telegramcli
+			//system("sudo rm -r /home/pi/Desktop/projeto/cam.jpg");
+		}
+	
+	stexec = 0;
 	}
     return 0;
 }
-

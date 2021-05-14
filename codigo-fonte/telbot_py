@@ -1,0 +1,10 @@
+import telegram
+# Conecta ao Bot
+bot = telegram.Bot(token="1769974205:AAF9pKzAel3DP6yUwA-8BqI-COf-HXMMo3s")
+# Seta o id do chat
+chat_id=1315339228
+# Manda a foto
+bot.sendPhoto(chat_id=chat_id, photo=open('./cam.jpg', 'rb'))
+
+
+	
